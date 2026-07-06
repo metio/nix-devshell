@@ -4,14 +4,33 @@ SPDX-License-Identifier: 0BSD
 -->
 # nix-devshell
 
-A composite GitHub Action that installs Nix and caches the `/nix` store, so a
-repo whose toolchain is a nix flake runs every CI gate through the flake's
-devShell and resolves the exact tool versions in `flake.lock` — identical to a
-local `nix develop`.
+The metio nix toolchain, in two halves:
+
+- **A flake** (`lib.mkDevShell`) that assembles a repo's devShell from the
+  shared lint gate (reuse, typos, yamllint, actionlint, shellcheck,
+  markdownlint) and its `ci-*` command wrappers, plus the from-source Go tools
+  nixpkgs does not ship (arch-go, modernize, helm-schema). Defined once here so
+  every repo resolves the same tools from `flake.lock`.
+- **A composite GitHub Action** that installs Nix and caches the `/nix` store,
+  so a repo whose toolchain is that flake runs every CI gate through the
+  devShell — identical to a local `nix develop`.
 
 ## Usage
 
-Check out the repo first, then run each gate with `nix develop --command …`:
+Build the devShell from this flake, then in CI check the repo out, set Nix up
+with the action, and run each gate through the devShell:
+
+```nix
+# flake.nix
+inputs.devshell.url = "github:metio/nix-devshell";
+inputs.nixpkgs.follows = "devshell/nixpkgs";
+outputs = { nixpkgs, devshell, ... }: {
+  devShells.<sys>.default = devshell.lib.mkDevShell {
+    pkgs = nixpkgs.legacyPackages.<sys>;
+    packages = [ /* repo-specific tools + gate commands */ ];
+  };
+};
+```
 
 ```yaml
 jobs:
@@ -21,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@<sha>
       - uses: metio/nix-devshell@<sha>
-      - run: nix develop --command <gate>
+      - run: nix develop --command ci-reuse   # or any gate
 ```
 
 The store is keyed on `flake.nix`/`flake.lock`, so it downloads the devShell

@@ -16,14 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./
-      - run: nix develop --command reuse lint
+      - run: nix develop --command ci-reuse
   yaml:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./
-      - run: nix develop --command yamllint .
+      - run: nix develop --command ci-yaml
   github-actions:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -31,14 +31,14 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./
       # actionlint shells out to shellcheck (in the devShell) for run: blocks.
-      - run: nix develop --command actionlint
+      - run: nix develop --command ci-actionlint
   markdown:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: ./
-      - run: nix develop --command markdownlint-cli2 "**/*.md"
+      - run: nix develop --command ci-markdown
   policy:
     # The metio convention policies (SHA-pinned uses, job timeouts, permissions,
     # …) run against this repo's action and workflows.
