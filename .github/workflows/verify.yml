@@ -1,0 +1,64 @@
+# SPDX-FileCopyrightText: The nix-devshell Authors
+# SPDX-License-Identifier: 0BSD
+name: Verify
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+# The lint gate runs through this repo's own action (`uses: ./`), so a change to
+# the composite is exercised by the composite before it can merge, and the tools
+# come from the flake devShell rather than pinned marketplace actions.
+jobs:
+  reuse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: ./
+      - run: nix develop --command reuse lint
+  yaml:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: ./
+      - run: nix develop --command yamllint .
+  github-actions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: ./
+      # actionlint shells out to shellcheck (in the devShell) for run: blocks.
+      - run: nix develop --command actionlint
+  markdown:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: ./
+      - run: nix develop --command markdownlint-cli2 "**/*.md"
+  policy:
+    # The metio convention policies (SHA-pinned uses, job timeouts, permissions,
+    # …) run against this repo's action and workflows.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: metio/ci/policy-check@59a3cbf82e2797f72e63edce1880a4c8db865a3d # 2026.7.6091618
+  verify:
+    # Single required check: mark only this one required in branch protection and
+    # new jobs are covered automatically.
+    name: Verify
+    needs: [reuse, yaml, github-actions, markdown, policy]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify every job succeeded or skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          bad=$(echo "$NEEDS" | jq -r 'to_entries[] | select(.value.result != "success" and .value.result != "skipped") | "\(.key)=\(.value.result)"')
+          [ -z "$bad" ] || { echo "::error::$bad"; exit 1; }

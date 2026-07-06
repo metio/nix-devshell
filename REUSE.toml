@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: The nix-devshell Authors
+# SPDX-License-Identifier: 0BSD
+
+version = 1
+
+# JSON carries no comment syntax; flake.lock is nix-generated JSON.
+[[annotations]]
+path = ["renovate.json", "flake.lock"]
+precedence = "override"
+SPDX-FileCopyrightText = "The nix-devshell Authors"
+SPDX-License-Identifier = "0BSD"

@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: The nix-devshell Authors
+# SPDX-License-Identifier: 0BSD
+
+name: Release
+
+# Calendar-versioned self-release: a push to main that touches the action cuts a
+# tagged GitHub release, so consumers pin a version (and Renovate bumps it)
+# instead of tracking @main.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # create the tag and the release
+
+# Serialize runs: needs-release reads the previous tag before this run creates
+# its own, so two quick pushes would otherwise read the same bound. Queue (never
+# cancel) so the earlier run tags first.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 0 # needs-release/calver read tags and history
+      - id: gate
+        uses: metio/ci/needs-release@59a3cbf82e2797f72e63edce1880a4c8db865a3d # 2026.7.6091618
+        with:
+          paths: action.yml
+      - id: version
+        if: steps.gate.outputs.needed == 'true'
+        uses: metio/ci/calver@59a3cbf82e2797f72e63edce1880a4c8db865a3d # 2026.7.6091618
+      - id: notes
+        name: Generate release notes
+        if: steps.gate.outputs.needed == 'true'
+        uses: metio/ci/release-notes@59a3cbf82e2797f72e63edce1880a4c8db865a3d # 2026.7.6091618
+        with:
+          version: ${{ steps.version.outputs.version }}
+          previous: ${{ steps.gate.outputs.last }}
+      - name: Create release
+        if: steps.gate.outputs.needed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          NOTES: ${{ steps.notes.outputs.file }}
+        run: gh release create "$VERSION" --target "$GITHUB_SHA" --notes-file "$NOTES" --title "$VERSION"
