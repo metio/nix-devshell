@@ -106,16 +106,24 @@
         '';
 
       # The lint gate every metio repo shares, byte-for-byte.
+      # harper comes from THIS flake's nixpkgs, not the caller's: older
+      # stable channels package only harper-ls, and a consumer on 25.05
+      # would otherwise get a ci-harper pointing at a binary that does
+      # not exist. Everything else resolves against the caller's pkgs.
+      harperFor =
+        pkgs: nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system}.harper;
+
       lintTools =
-        pkgs: with pkgs; [
+        pkgs:
+        (with pkgs; [
           reuse
           typos
           yamllint
           actionlint
           shellcheck # actionlint shells out to it for run: blocks
           markdownlint-cli2
-          harper # grammar/style for prose; typos stays for code identifiers
-        ];
+        ])
+        ++ [ (harperFor pkgs) ]; # grammar/style for prose; typos covers code
 
       # One canonical `ci-<tool>` command per shared lint tool, wrapping the EXACT
       # CI invocation (e.g. `reuse lint`, `markdownlint-cli2 "**/*.md"`). Defined
@@ -150,7 +158,7 @@
             [ "''\${#roots[@]}" -gt 0 ] || roots=(.)
           fi
           ${pkgs.findutils}/bin/find "''\${roots[@]}" -name '*.md' -not -path './.git/*' -print0 \
-            | ${pkgs.findutils}/bin/xargs -0 ${pkgs.harper}/bin/harper-cli lint --ignore "$ignore"
+            | ${pkgs.findutils}/bin/xargs -0 ${harperFor pkgs}/bin/harper-cli lint --ignore "$ignore"
         '')
       ];
 
