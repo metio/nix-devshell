@@ -114,6 +114,7 @@
           actionlint
           shellcheck # actionlint shells out to it for run: blocks
           markdownlint-cli2
+          harper # grammar/style for prose; typos stays for code identifiers
         ];
 
       # One canonical `ci-<tool>` command per shared lint tool, wrapping the EXACT
@@ -132,6 +133,25 @@
         # actionlint finds shellcheck on PATH, which the devShell provides.
         (pkgs.writeShellScriptBin "ci-actionlint" ''exec ${pkgs.actionlint}/bin/actionlint "$@"'')
         (pkgs.writeShellScriptBin "ci-markdown" ''exec ${pkgs.markdownlint-cli2}/bin/markdownlint-cli2 "**/*.md" "$@"'')
+        # harper lints PROSE (grammar, repeated words, style) where typos
+        # lints CODE (identifier spelling) — complements, not substitutes,
+        # so SpellCheck is off here; heading case is a style choice, so
+        # UseTitleCase is off too. Repos append rules via HARPER_IGNORE.
+        # Scope defaults to docs/ and kb/ (the prose homes); pass paths to
+        # override. Exits non-zero via xargs when any file has findings.
+        (pkgs.writeShellScriptBin "ci-harper" ''
+          set -eu
+          ignore="SpellCheck,UseTitleCase''\${HARPER_IGNORE:+,$HARPER_IGNORE}"
+          if [ "$#" -gt 0 ]; then
+            roots=("$@")
+          else
+            roots=()
+            for d in docs kb; do [ -d "$d" ] && roots+=("$d"); done
+            [ "''\${#roots[@]}" -gt 0 ] || roots=(.)
+          fi
+          ${pkgs.findutils}/bin/find "''\${roots[@]}" -name '*.md' -not -path './.git/*' -print0 \
+            | ${pkgs.findutils}/bin/xargs -0 ${pkgs.harper}/bin/harper-cli lint --ignore "$ignore"
+        '')
       ];
 
       # Assemble a repo's devShell: the shared lint gate plus the repo's own
@@ -154,8 +174,8 @@
             packages = lintTools pkgs ++ lintCommands pkgs ++ packages;
             shellHook = ''
               if [ -t 1 ]; then
-                echo "metio devshell — shared lint gate: reuse, typos, yamllint, actionlint, markdownlint-cli2"
-                echo "  run any the CI way: ci-reuse, ci-typos, ci-yaml, ci-actionlint, ci-markdown"
+                echo "metio devshell — shared lint gate: reuse, typos, yamllint, actionlint, markdownlint-cli2, harper"
+                echo "  run any the CI way: ci-reuse, ci-typos, ci-yaml, ci-actionlint, ci-markdown, ci-harper"
                 ${menu}
               fi
             ''
