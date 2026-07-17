@@ -126,7 +126,7 @@
         ++ [ (harperFor pkgs) ]; # grammar/style for prose; typos covers code
 
       # One canonical `ci-<tool>` command per shared lint tool, wrapping the EXACT
-      # CI invocation (e.g. `reuse lint`, `markdownlint-cli2 "**/*.md"`). Defined
+      # CI invocation (e.g. `reuse lint`, `yamllint .`). Defined
       # once here so every repo inherits them: a workflow runs the gate with
       # `nix develop --command ci-reuse`, and a developer runs the same name bare
       # inside `nix develop` — the invocation lives in one place instead of being
@@ -140,7 +140,26 @@
         (pkgs.writeShellScriptBin "ci-yaml" ''exec ${pkgs.yamllint}/bin/yamllint . "$@"'')
         # actionlint finds shellcheck on PATH, which the devShell provides.
         (pkgs.writeShellScriptBin "ci-actionlint" ''exec ${pkgs.actionlint}/bin/actionlint "$@"'')
-        (pkgs.writeShellScriptBin "ci-markdown" ''exec ${pkgs.markdownlint-cli2}/bin/markdownlint-cli2 "**/*.md" "$@"'')
+        # Lints the markdown the checkout tracks. A `**/*.md` glob reaches past
+        # it into everything git ignores — vendored node_modules, mutation-test
+        # sandboxes, fetched sources — so the gate passes in CI (a fresh
+        # checkout has none of those) while a developer running it sees tens of
+        # thousands of findings in files nobody in the repo wrote. A gate that
+        # only works on a machine without dependencies installed is a gate
+        # nobody runs before pushing. `git ls-files` is exactly what CI lints.
+        # Explicit paths win, for linting one file while writing it.
+        (pkgs.writeShellScriptBin "ci-markdown" ''
+          set -eu
+          if [ "$#" -gt 0 ]; then
+            exec ${pkgs.markdownlint-cli2}/bin/markdownlint-cli2 "$@"
+          fi
+          if ${pkgs.git}/bin/git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            ${pkgs.git}/bin/git ls-files -z -- '*.md' '*.markdown' \
+              | ${pkgs.findutils}/bin/xargs -0 -r ${pkgs.markdownlint-cli2}/bin/markdownlint-cli2
+          else
+            exec ${pkgs.markdownlint-cli2}/bin/markdownlint-cli2 "**/*.md"
+          fi
+        '')
         # harper lints PROSE (grammar, repeated words, style) where typos
         # lints CODE (identifier spelling) — complements, not substitutes,
         # so SpellCheck is off here; heading case is a style choice, so
