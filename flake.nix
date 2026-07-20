@@ -81,16 +81,16 @@
         pkgs:
         pkgs.buildGoModule rec {
           pname = "modernize";
-          version = "0.47.0";
+          version = "0.48.0";
           src = pkgs.fetchFromGitHub {
             owner = "golang";
             repo = "tools";
             rev = "v${version}";
-            hash = "sha256-JfrmKeIAhHhxMqOfh27w+T9PaBAIzh47wOokXmr1Z5Q=";
+            hash = "sha256-4NhWECD/SMlPN4/Ubo4bWb1y57/biW2F0nS8fngOjTs=";
           };
           modRoot = "gopls";
           subPackages = [ "internal/analysis/modernize/cmd/modernize" ];
-          vendorHash = "sha256-GF9KSCr2aMjczVKz9H2t5Gc2kF0wqmKenO7qa8TQw4o=";
+          vendorHash = "sha256-2LA1f20WNHdeOOee/xkTawIJmHh8XD4MA0QIF/7oqQg=";
         };
 
       # controller-runtime envtest wants a dir holding etcd, kube-apiserver, and
