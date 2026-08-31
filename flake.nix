@@ -51,14 +51,14 @@
         pkgs:
         pkgs.buildGoModule rec {
           pname = "helm-schema";
-          version = "0.23.4";
+          version = "0.23.5";
           src = pkgs.fetchFromGitHub {
             owner = "dadav";
             repo = "helm-schema";
             rev = version;
-            hash = "sha256-btkkNzye9if4lF/YdhalbwA2/dcZArU6/9Hr0bTJf1M=";
+            hash = "sha256-2mbcvBoCWfZfuFzWIdFbSCxOIz9bjU0Z/8tS2GS910w=";
           };
-          vendorHash = "sha256-jbK+XD5CbjMQJUJCcKbNN8LhYuhuy+Z3XcCmgiYw25Y=";
+          vendorHash = "sha256-rABGsuqlmv6FSNYQXBS8UeiZnw7Tx4r3UmkosgTeeaE=";
         };
 
       # arch-go (architecture rules, arch-go.yml).
@@ -81,16 +81,16 @@
         pkgs:
         pkgs.buildGoModule rec {
           pname = "modernize";
-          version = "0.47.0";
+          version = "0.49.0";
           src = pkgs.fetchFromGitHub {
             owner = "golang";
             repo = "tools";
             rev = "v${version}";
-            hash = "sha256-JfrmKeIAhHhxMqOfh27w+T9PaBAIzh47wOokXmr1Z5Q=";
+            hash = "sha256-+d6D1w2XNWjy/i4n+pxSbKy+WOr1Ui/iO6FsvbJP0bQ=";
           };
           modRoot = "gopls";
           subPackages = [ "internal/analysis/modernize/cmd/modernize" ];
-          vendorHash = "sha256-GF9KSCr2aMjczVKz9H2t5Gc2kF0wqmKenO7qa8TQw4o=";
+          vendorHash = "sha256-zRlyS0DkEAGstjB3XnFL2TrZdsOhSTXCunppVZQ6/lk=";
         };
 
       # controller-runtime envtest wants a dir holding etcd, kube-apiserver, and
