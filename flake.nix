@@ -51,14 +51,14 @@
         pkgs:
         pkgs.buildGoModule rec {
           pname = "helm-schema";
-          version = "0.23.4";
+          version = "0.24.0";
           src = pkgs.fetchFromGitHub {
             owner = "dadav";
             repo = "helm-schema";
             rev = version;
-            hash = "sha256-btkkNzye9if4lF/YdhalbwA2/dcZArU6/9Hr0bTJf1M=";
+            hash = "sha256-eHY3RGUnlGsJyauG6n4nukFwS7gIPUZ+KfF0n87uluA=";
           };
-          vendorHash = "sha256-jbK+XD5CbjMQJUJCcKbNN8LhYuhuy+Z3XcCmgiYw25Y=";
+          vendorHash = "sha256-FLDGPlmhH3hgJhmhV6R8sPotAIfcS09DEPG+rg+YnIA=";
         };
 
       # arch-go (architecture rules, arch-go.yml).
@@ -81,12 +81,12 @@
         pkgs:
         pkgs.buildGoModule rec {
           pname = "modernize";
-          version = "0.47.0";
+          version = "0.52.0";
           src = pkgs.fetchFromGitHub {
             owner = "golang";
             repo = "tools";
             rev = "v${version}";
-            hash = "sha256-JfrmKeIAhHhxMqOfh27w+T9PaBAIzh47wOokXmr1Z5Q=";
+            hash = "sha256-invRApL81q9uIUCbBUhWGyS+14OKK6HZYdONzhHGKP4=";
           };
           modRoot = "gopls";
           subPackages = [ "internal/analysis/modernize/cmd/modernize" ];
