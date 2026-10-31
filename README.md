@@ -2,6 +2,7 @@
 SPDX-FileCopyrightText: The nix-devshell Authors
 SPDX-License-Identifier: 0BSD
 -->
+
 # nix-devshell
 
 The metio nix toolchain, in two halves:
@@ -55,4 +56,4 @@ than setup or marketplace actions.
 
 ## License
 
-[0BSD](LICENSES/0BSD.txt), REUSE-compliant.
+[0BSD](LICENSES/0BSD.txt).
