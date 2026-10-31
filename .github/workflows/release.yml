@@ -30,16 +30,16 @@ jobs:
         with:
           fetch-depth: 0 # needs-release/calver read tags and history
       - id: gate
-        uses: metio/ci/needs-release@21ce4ec08a0516b39fcd5985472f0d53ec11e338 # 2026.10.31095959
+        uses: metio/ci/needs-release@ac52fa20d1d09c7454b0a9512702f092a4726c11 # 2026.10.31111447
         with:
           paths: action.yml
       - id: version
         if: steps.gate.outputs.needed == 'true'
-        uses: metio/ci/calver@21ce4ec08a0516b39fcd5985472f0d53ec11e338 # 2026.10.31095959
+        uses: metio/ci/calver@ac52fa20d1d09c7454b0a9512702f092a4726c11 # 2026.10.31111447
       - id: notes
         name: Generate release notes
         if: steps.gate.outputs.needed == 'true'
-        uses: metio/ci/release-notes@21ce4ec08a0516b39fcd5985472f0d53ec11e338 # 2026.10.31095959
+        uses: metio/ci/release-notes@ac52fa20d1d09c7454b0a9512702f092a4726c11 # 2026.10.31111447
         with:
           version: ${{ steps.version.outputs.version }}
           previous: ${{ steps.gate.outputs.last }}
