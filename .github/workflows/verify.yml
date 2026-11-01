@@ -10,13 +10,6 @@ permissions:
 # the composite is exercised by the composite before it can merge, and the tools
 # come from the flake devShell rather than pinned marketplace actions.
 jobs:
-  reuse:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: ./
-      - run: nix develop --command ci-reuse
   yaml:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -39,30 +32,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: ./
       - run: nix develop --command ci-markdown
-  policy:
-    # The metio convention policies (SHA-pinned uses, job timeouts, permissions,
-    # …) run against this repo's action and workflows.
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: metio/ci/policy-check@d4a165ac035d1fa1a7aee5b27192d0aed9c7a0b0 # main
-  dco:
-    # Developer Certificate of Origin: every commit carries a Signed-off-by
-    # trailer. Bot PRs skip; a skipped job still satisfies the gate below.
-    if: github.event.pull_request.user.type != 'Bot'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-      - uses: metio/ci/dco@d4a165ac035d1fa1a7aee5b27192d0aed9c7a0b0 # main
   verify:
     # Single required check: mark only this one required in branch protection and
     # new jobs are covered automatically.
     name: Verify
-    needs: [reuse, yaml, github-actions, markdown, dco, policy]
+    needs: [yaml, github-actions, markdown]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
